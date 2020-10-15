@@ -28,10 +28,10 @@ class Custom_StockMove(models.Model):
 
     def get_data(self):
         for move in self:
-
-            if not (move.picking_id and move.picking_id.group_id):
-                continue
             picking = move.picking_id
+            if not (picking and picking.group_id):
+                continue
+            
             sale_order = self.env['sale.order'].sudo().search([
                 ('procurement_group_id', '=', picking.group_id.id)], limit=1)
         for line in sale_order.order_line:
@@ -43,15 +43,36 @@ class Custom_StockMove(models.Model):
     
     def _inverse_get_data(self):
         for move in self:
-            if not (move.picking_id and move.picking_id.group_id):
-                continue
             picking = move.picking_id
             sale_order = self.env['sale.order'].sudo().search([
                 ('procurement_group_id', '=', picking.group_id.id)], limit=1)
+            
         for line in sale_order.order_line:
             if line.product_id.id != move.product_id.id:
                 continue
             line.update({
                 'dimension': line.dimension,
-            })        
-                    
+            })  
+            if not (picking and picking.group_id):
+                continue
+            
+            
+        
+class Custom_Invoice(models.Model):
+    _inherit='account.move'
+    dimension = fields.Char(String="XxX",compute='get_data')
+
+    def get_data(self):
+        for move in self:
+            picking = move.id
+            if not (picking and picking.group_id):
+                continue
+            
+            picking = self.env['stock.move'].sudo().search([
+                ('procurement_group_id', '=', picking.group_id.id)], limit=1)
+        for line in picking.move_id:
+            if line.product_id.id != picking.product_id.id:
+                continue
+            move.update({
+                'dimension': line.dimension,
+            })
