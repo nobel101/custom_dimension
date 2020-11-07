@@ -6,24 +6,11 @@ class Custom_Dimension(models.Model):
     _inherit = 'sale.order.line'
     
     dimension = fields.Char(String="XxX")
-    
-    def _prepare_procurement_values(self, group_id=False):
-        res = super(Custom_Dimension, self)._prepare_procurement_values(group_id)
-        res.update({'dimension': self.dimension}) #list of fields you want to move with the sale order line to stock move 
-        return res    
 
-
-class Custom_StockRule(models.Model):
-    _inherit = 'stock.rule'
-    def _get_stock_move_values(self, product_id, product_qty, product_uom, location_id, name, origin, values, group_id):
-        res = super(Custom_StockMove, self)._get_stock_move_values(product_id, product_qty, product_uom, location_id,
-                                                            name, origin, values, group_id)
-        res['dimension'] = values.get('dimension', False)
-        return res   
     
 class Custom_StockMove(models.Model):
     _inherit='stock.move'
-    
+
     dimension = fields.Char(String="XxX",compute='get_data',inverse='_inverse_get_data')
 
     def get_data(self):
